@@ -38,12 +38,22 @@ app.use("/",(req, res)=>{
     try {
         console.log("Launching ...");
         const browser = await puppeteer.launch();
-        const page = await browser.newPage();
+        const page = await browser.newPage();``
         console.log("Opening Site....");
 
         const domains = [];
+
+       const MAX= 75;
+        await page.goto("https://www.atslibrary.com/shop/", {
+            waitUntil: "load",
+            timeout: 0,
+          });
+
+        const maxSelector=  await page.waitForSelector(".woocommerce-pagination .page-numbers li:nth-last-child(2)")
+        const MAXVal = await maxSelector.evaluate((node)=> node.textContent)
+        console.log("MAXIMUM = ",MAXVal)
         
-        for(let i =1;i<1000;i++){
+        for(let i =1;i<=(Number(MAXVal || MAX));i++){
             const URL ="https://www.atslibrary.com/shop/page/"+i
             const loadPage = await page.goto(URL, {
                 waitUntil: "load",
@@ -51,6 +61,7 @@ app.use("/",(req, res)=>{
               });
               
               const status = loadPage?.status();
+              console.log("COUNT = ", i)
               console.log("Status:", status);
               // Set screen size
               await page.setViewport({width: 1080, height: 1024});
@@ -73,13 +84,13 @@ app.use("/",(req, res)=>{
                   const thumb = node.querySelector("img.attachment-woocommerce_thumbnail");
                   // console.log(price)
                   return {
-                    link: link.href,
-                    title: (title.innerText || ""),
-                    categories: categories.innerText,
+                    link: link && link.href,
+                    title:  title && title.innerText,
+                    categories: categories && categories.innerText,
                     price1:price1 && price1.textContent,
-                    discount:discount.innerText,
+                    discount:discount && discount.innerText,
                     price2:price2 && price2.textContent,
-                    thumb: thumb.src,
+                    thumb: thumb && thumb.src,
                   };
                 });
                 domains.push(domainInfo);
